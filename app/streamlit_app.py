@@ -94,8 +94,14 @@ input_df = pd.DataFrame([[
     convert_input(increased_thirst),
     convert_input(blurred_vision),
     convert_input(dizziness)
-]]), 
-
+]], columns=[
+    'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
+    'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
+    'chest_pain', 'jaundice', 'shortness_of_breath', 'skin_changes',
+    'wheezing', 'chest_tightness', 'body_pain', 'cough', 'loss_of_taste',
+    'abdominal_pain', 'trouble_sleeping', 'frequent_urination', 'headache',
+    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness'
+])
 class PDF(FPDF):
     def header(self):
         if os.path.exists("logo.png"):
@@ -134,15 +140,6 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf.output(filename)
     return filename
     
-columns=[
-    'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
-    'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
-    'chest_pain', 'jaundice', 'shortness_of_breath', 'skin_changes',
-    'wheezing', 'chest_tightness', 'body_pain', 'cough', 'loss_of_taste',
-    'abdominal_pain', 'trouble_sleeping', 'frequent_urination', 'headache',
-    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness'
-]
-
 # Define diagnosis labels (ensure this matches the model's output)
 diagnosis_map = {
     0: "Asthma",
