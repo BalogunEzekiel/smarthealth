@@ -12,6 +12,37 @@ logo = Image.open("logo.png")
 st.image(logo, width=200)
 st.title("")
 
+st.set_page_config(page_title="SmartHealth", layout="wide")
+
+st.title("SmartHealth - Chronic Disease Predictor")
+
+st.markdown("""
+**Note:** This app is designed to provide AI-assisted predictions for the following specific chronic disease:
+- Asthma
+- Cancer
+- COVID-19
+- Diabetes
+- Heart Disease
+- Hypertension
+- Kidney Disease
+- Liver Disease
+
+Please consult a medical professional for a definitive diagnosis.
+""")
+
+with st.sidebar:
+    st.info("""
+    **Supported Conditions:**
+    - Asthma
+    - Cancer
+    - COVID-19
+    - Diabetes
+    - Heart Disease
+    - Hypertension
+    - Kidney Disease
+    - Liver Disease
+    """)
+
 # Sidebar note
 st.sidebar.markdown("## ℹ️ About SmartHealth")
 st.sidebar.info("This app uses a machine learning model to predict possible diagnoses based on symptoms provided. It is not a substitute for professional medical advice.")
