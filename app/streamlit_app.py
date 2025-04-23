@@ -7,7 +7,7 @@ model = joblib.load("model.pkl")
 
 # Sidebar note
 st.sidebar.markdown("## ℹ️ About SmartHealth")
-st.sidebar.info("This app uses a machine learning model to predict possible diagnoses based on selected symptoms. It is not a substitute for professional medical advice.")
+st.sidebar.info("This app uses a machine learning model to predict possible diagnoses based on symptoms provided. It is not a substitute for professional medical advice.")
 
 st.title("SmartHealth - Diagnostic Predictor")
 
@@ -104,4 +104,4 @@ if st.button("Predict"):
         st.error(f"Prediction failed: {e}")
 
 # Add disclaimer
-st.caption("Note: This is a machine learning prediction based on the entered symptoms. Always consult a medical professional for a definitive diagnosis.")
+st.caption("Note: This is a prediction based on the symptoms provided. Always consult a medical professional for a definitive diagnosis.")
