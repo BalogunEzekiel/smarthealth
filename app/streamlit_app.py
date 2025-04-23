@@ -1,15 +1,20 @@
 import streamlit as st
 import pandas as pd
 import joblib
+from PIL import Image
+import streamlit as st
 
 # Load model
 model = joblib.load("model.pkl")
 
+# Logo and title
+logo = Image.open("logo.png")
+st.image(logo, width=150)
+st.title("SmartHealth")
+
 # Sidebar note
 st.sidebar.markdown("## ℹ️ About SmartHealth")
 st.sidebar.info("This app uses a machine learning model to predict possible diagnoses based on symptoms provided. It is not a substitute for professional medical advice.")
-
-st.title("SmartHealth - Diagnostic Predictor")
 
 st.write("Enter patient data to predict diagnosis:")
 
