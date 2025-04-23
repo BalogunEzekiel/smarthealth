@@ -4,31 +4,13 @@ import joblib
 from PIL import Image
 import streamlit as st
 
-st.set_page_config(page_title="SmartHealth", layout="wide")
-
-st.title("SmartHealth - Chronic Disease Predictor")
-
-st.markdown("""
-**Note:** This app is designed to provide AI-assisted predictions for the following specific chronic disease:
-- Asthma
-- Cancer
-- COVID-19
-- Diabetes
-- Heart Disease
-- Hypertension
-- Kidney Disease
-- Liver Disease
-
-Please consult a medical professional for a definitive diagnosis.
-""")
-
 # Load model
 model = joblib.load("model.pkl")
 
 # Logo and title
 logo = Image.open("logo.png")
 st.image(logo, width=200)
-st.title("")
+st.title("Welcome to SmartHealth!")
 
 with st.sidebar:
     st.info("""
