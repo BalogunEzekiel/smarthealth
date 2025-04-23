@@ -3,6 +3,9 @@ import pandas as pd
 import joblib
 from PIL import Image
 import streamlit as st
+from fpdf import FPDF
+from datetime import datetime
+import os
 
 # Load model
 model = joblib.load("model.pkl")
@@ -91,6 +94,45 @@ input_df = pd.DataFrame([[
     convert_input(increased_thirst),
     convert_input(blurred_vision),
     convert_input(dizziness)
+
+class PDF(FPDF):
+    def header(self):
+        if os.path.exists("logo.png"):
+            self.image("logo.png", 10, 8, 33)
+        self.set_font("Arial", 'B', 16)
+        self.cell(0, 10, "SmartHealth Report", ln=True, align="C")
+        self.ln(10)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Arial", "I", 8)
+        self.cell(0, 10, f"Verified by SmartHealth | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, 'C')
+
+def generate_pdf(name, symptoms_df, diagnosis):
+    pdf = PDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(0, 10, f"Patient Name: {name}", ln=True)
+    pdf.cell(0, 10, f"Predicted Diagnosis: {diagnosis}", ln=True)
+    pdf.ln(5)
+
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Symptom Summary:", ln=True)
+    pdf.set_font("Arial", size=12)
+
+    for col in symptoms_df.columns:
+        response = "Yes" if symptoms_df[col].values[0] == 1 else "No"
+        pdf.cell(0, 10, f"- {col.replace('_', ' ').title()}: {response}", ln=True)
+
+    pdf.ln(10)
+    pdf.set_font("Arial", "I", 10)
+    pdf.multi_cell(0, 10, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
+
+    filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
+    pdf.output(filename)
+    return filename
+    
 ]], columns=[
     'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
     'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
@@ -112,17 +154,44 @@ diagnosis_map = {
     7: "Liver Disease"
 }
 
+name = st.text_input("Enter patient's full name:")
+
 # Prediction
 if st.button("Predict"):
-    try:
-        prediction = model.predict(input_df)[0]
-        diagnosis = diagnosis_map.get(prediction, "Unknown")
-        st.success(f"🩺 Predicted Diagnosis: **{diagnosis}**")
-    except Exception as e:
-        st.error(f"Prediction failed: {e}")
+    if name.strip() == "":
+        st.warning("Please enter the patient's name.")
+    else:
+        try:
+            prediction = model.predict(input_df)[0]
+            diagnosis = diagnosis_map.get(prediction, "Unknown")
+            st.success(f"🩺 Predicted Diagnosis for {name}: **{diagnosis}**")
+
+            # Generate and download PDF
+            report_file = generate_pdf(name, input_df, diagnosis)
+            with open(report_file, "rb") as f:
+                st.download_button(
+                    label="📄 Download Diagnosis Report",
+                    data=f,
+                    file_name=report_file,
+                    mime="application/pdf"
+                )
+
+        except Exception as e:
+            st.error(f"Prediction failed: {e}")
 
 # Add disclaimer
 st.caption("Note: This is a prediction based on the symptoms provided. Always consult a medical professional for a definitive diagnosis.")
+
+# Patient engagement: Health tips section
+st.markdown("---")
+st.markdown("### 💡 General Health Tips")
+st.info("""
+- Stay hydrated and eat a balanced diet.
+- Get regular checkups even if you're feeling fine.
+- Avoid self-medication. Seek expert advice.
+- Keep track of chronic symptoms.
+- Get enough sleep and exercise regularly.
+""")
 
 # Patient engagement: Personalized greeting
 st.markdown("---")
@@ -139,17 +208,6 @@ if st.button("Submit Feedback"):
         st.success("✅ Thank you for your feedback!")
     else:
         st.warning("Please enter some feedback before submitting.")
-
-# Patient engagement: Health tips section
-st.markdown("---")
-st.markdown("### 💡 General Health Tips")
-st.info("""
-- Stay hydrated and eat a balanced diet.
-- Get regular checkups even if you're feeling fine.
-- Avoid self-medication. Seek expert advice.
-- Keep track of chronic symptoms.
-- Get enough sleep and exercise regularly.
-""")
 
 # Optional: Downloadable report (based on user input)
 st.markdown("### 📄 Download Your Input Summary")
