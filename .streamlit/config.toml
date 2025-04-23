@@ -1,0 +1,6 @@
+[theme]
+primaryColor = "#00B8A9"  # Turquoise
+backgroundColor = "#F8F8F8"  # Light Grey
+secondaryBackgroundColor = "#E0F7FA"  # Pale Blue
+textColor = "#262730"  # Dark Charcoal
+font = "sans serif"
