@@ -9,7 +9,7 @@ model = joblib.load("model.pkl")
 
 # Logo and title
 logo = Image.open("logo.png")
-st.image(logo, width=150)
+st.image(logo, width=300)
 st.title("SmartHealth")
 
 # Sidebar note
