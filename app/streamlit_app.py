@@ -4,14 +4,6 @@ import joblib
 from PIL import Image
 import streamlit as st
 
-# Load model
-model = joblib.load("model.pkl")
-
-# Logo and title
-logo = Image.open("logo.png")
-st.image(logo, width=200)
-st.title("")
-
 st.set_page_config(page_title="SmartHealth", layout="wide")
 
 st.title("SmartHealth - Chronic Disease Predictor")
@@ -29,6 +21,14 @@ st.markdown("""
 
 Please consult a medical professional for a definitive diagnosis.
 """)
+
+# Load model
+model = joblib.load("model.pkl")
+
+# Logo and title
+logo = Image.open("logo.png")
+st.image(logo, width=200)
+st.title("")
 
 with st.sidebar:
     st.info("""
