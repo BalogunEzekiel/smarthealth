@@ -123,3 +123,40 @@ if st.button("Predict"):
 
 # Add disclaimer
 st.caption("Note: This is a prediction based on the symptoms provided. Always consult a medical professional for a definitive diagnosis.")
+
+# Patient engagement: Personalized greeting
+st.markdown("---")
+st.subheader("💬 Tell us about your experience")
+name = st.text_input("What's your name?", "")
+if name:
+    st.success(f"Thank you for using SmartHealth, {name}! We hope this tool helps you stay informed about your health.")
+
+# Patient engagement: Feedback form
+st.markdown("### 📝 We’d love your feedback!")
+feedback = st.text_area("Do you have suggestions or comments about this tool?")
+if st.button("Submit Feedback"):
+    if feedback:
+        st.success("✅ Thank you for your feedback!")
+    else:
+        st.warning("Please enter some feedback before submitting.")
+
+# Patient engagement: Health tips section
+st.markdown("---")
+st.markdown("### 💡 General Health Tips")
+st.info("""
+- Stay hydrated and eat a balanced diet.
+- Get regular checkups even if you're feeling fine.
+- Avoid self-medication. Seek expert advice.
+- Keep track of chronic symptoms.
+- Get enough sleep and exercise regularly.
+""")
+
+# Optional: Downloadable report (based on user input)
+st.markdown("### 📄 Download Your Input Summary")
+if st.download_button(
+    label="Download My Health Input as CSV",
+    data=input_df.to_csv(index=False).encode('utf-8'),
+    file_name=f"{name}_smarthealth_input.csv" if name else "smarthealth_input.csv",
+    mime='text/csv'
+):
+    st.success("✅ Your input data has been downloaded!")
