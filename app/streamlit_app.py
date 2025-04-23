@@ -206,13 +206,3 @@ if st.button("Submit Feedback"):
         st.success("✅ Thank you for your feedback!")
     else:
         st.warning("Please enter some feedback before submitting.")
-
-# Optional: Downloadable report (based on user input)
-st.markdown("### 📄 Download Your Input Summary")
-if st.download_button(
-    label="Download My Health Input as CSV",
-    data=input_df.to_csv(index=False).encode('utf-8'),
-    file_name=f"{name}_smarthealth_input.csv" if name else "smarthealth_input.csv",
-    mime='text/csv'
-):
-    st.success("✅ Your input data has been downloaded!")
