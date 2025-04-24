@@ -135,7 +135,7 @@ patient_name = st.text_input("Enter patient's full name:")
 
 # Prediction
 if st.button("Predict Diagnosis"):
-    if name.strip() == "":
+    if patient_name.strip() == "":
         st.warning("Please enter the patient's name.")
     else:
         try:
@@ -174,7 +174,7 @@ st.info("""
 st.markdown("---")
 st.subheader("💬 Tell us about your experience")
 feedback_name = st.text_input("What's your name?", "")
-if name:
+if feedback_name:
     st.success(f"Thank you for using SmartHealth, {feedback_name}! We hope this tool helps you stay informed about your health.")
 
 # Patient engagement: Feedback form
