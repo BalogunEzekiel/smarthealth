@@ -175,11 +175,11 @@ st.markdown("---")
 st.subheader("💬 Tell us about your experience")
 feedback_name = st.text_input("What's your name?", "")
 if feedback_name:
-    st.success(f"Thank you for using SmartHealth, {feedback_name}! We hope this tool helps you stay informed about your health.")
+    st.success(f"Thank you for using SmartHealth, {feedback_name}! We hope this App helps you stay informed about your health.")
 
 # Patient engagement: Feedback form
 st.markdown("### 📝 We’d love your feedback!")
-feedback = st.text_area("Do you have suggestions or comments about this tool?")
+feedback = st.text_area("Do you have suggestions or comments about SmartHealth?")
 if st.button("Submit Feedback"):
     if feedback:
         st.success("✅ Thank you for your feedback!")
