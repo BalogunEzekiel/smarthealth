@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import joblib
 from PIL import Image
-import streamlit as st
 from fpdf import FPDF
 from datetime import datetime
 import os
@@ -35,73 +34,53 @@ st.sidebar.info("This app uses a machine learning model to predict possible diag
 st.write("Enter patient data to predict diagnosis:")
 
 # Get user input
-irregular_heartbeat = st.selectbox("Irregular heartbeat", ["No", "Yes"])
-sore_throat = st.selectbox("Sore throat", ["No", "Yes"])
-dark_urine = st.selectbox("Dark urine", ["No", "Yes"])
-slow_healing_wounds = st.selectbox("Slow healing wounds", ["No", "Yes"])
-unexplained_weight_loss = st.selectbox("Unexplained weight loss", ["No", "Yes"])
-muscle_cramps = st.selectbox("Muscle cramps", ["No", "Yes"])
-fatigue = st.selectbox("Fatigue", ["No", "Yes"])
-nausea = st.selectbox("Nausea", ["No", "Yes"])
-fever = st.selectbox("Fever", ["No", "Yes"])
-chest_pain = st.selectbox("Chest pain", ["No", "Yes"])
-jaundice = st.selectbox("Jaundice", ["No", "Yes"])
-shortness_of_breath = st.selectbox("Shortness of breath", ["No", "Yes"])
-skin_changes = st.selectbox("Skin changes", ["No", "Yes"])
-wheezing = st.selectbox("Wheezing", ["No", "Yes"])
-chest_tightness = st.selectbox("Chest tightness", ["No", "Yes"])
-body_pain = st.selectbox("Body pain", ["No", "Yes"])
-cough = st.selectbox("Cough", ["No", "Yes"])
-loss_of_taste = st.selectbox("Loss of taste", ["No", "Yes"])
-abdominal_pain = st.selectbox("Abdominal pain", ["No", "Yes"])
-trouble_sleeping = st.selectbox("Trouble sleeping", ["No", "Yes"])
-frequent_urination = st.selectbox("Frequent urination", ["No", "Yes"])
-headache = st.selectbox("Headache", ["No", "Yes"])
-swelling_in_legs = st.selectbox("Swelling in legs", ["No", "Yes"])
-increased_thirst = st.selectbox("Increased thirst", ["No", "Yes"])
-blurred_vision = st.selectbox("Blurred vision", ["No", "Yes"])
-dizziness = st.selectbox("Dizziness", ["No", "Yes"])
+# --- Helper function to create grouped inputs ---
+def symptom_group(title, symptoms):
+    with st.expander(f"{title} Symptoms", expanded=False):
+        return {symptom: st.selectbox(symptom.replace('_', ' ').title(), ["No", "Yes"], key=symptom)
+                for symptom in symptoms}
 
-# Convert categorical input to numeric
-def convert_input(val):
-    return 1 if val == "Yes" else 0
+# --- Symptom groups ---
+respiratory_symptoms = [
+    'cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'
+]
 
-# Create input DataFrame
+cardiovascular_symptoms = [
+    'irregular_heartbeat', 'chest_pain', 'fatigue', 'swelling_in_legs'
+]
+
+digestive_symptoms = [
+    'nausea', 'abdominal_pain', 'dark_urine', 'jaundice'
+]
+
+metabolic_symptoms = [
+    'increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds'
+]
+
+neurological_symptoms = [
+    'dizziness', 'headache', 'trouble_sleeping'
+]
+
+general_symptoms = [
+    'fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps'
+]
+
+# --- Collect all symptom inputs grouped ---
+input_data = {}
+input_data.update(symptom_group("Respiratory", respiratory_symptoms))
+input_data.update(symptom_group("Cardiovascular", cardiovascular_symptoms))
+input_data.update(symptom_group("Digestive & Hepatic", digestive_symptoms))
+input_data.update(symptom_group("Metabolic", metabolic_symptoms))
+input_data.update(symptom_group("Neurological", neurological_symptoms))
+input_data.update(symptom_group("General", general_symptoms))
+
+# --- Convert inputs to numeric DataFrame ---
+def convert_input(val): return 1 if val == "Yes" else 0
+
 input_df = pd.DataFrame([[
-    convert_input(irregular_heartbeat),
-    convert_input(sore_throat),
-    convert_input(dark_urine),
-    convert_input(slow_healing_wounds),
-    convert_input(unexplained_weight_loss),
-    convert_input(muscle_cramps),
-    convert_input(fatigue),
-    convert_input(nausea),
-    convert_input(fever),
-    convert_input(chest_pain),
-    convert_input(jaundice),
-    convert_input(shortness_of_breath),
-    convert_input(skin_changes),
-    convert_input(wheezing),
-    convert_input(chest_tightness),
-    convert_input(body_pain),
-    convert_input(cough),
-    convert_input(loss_of_taste),
-    convert_input(abdominal_pain),
-    convert_input(trouble_sleeping),
-    convert_input(frequent_urination),
-    convert_input(headache),
-    convert_input(swelling_in_legs),
-    convert_input(increased_thirst),
-    convert_input(blurred_vision),
-    convert_input(dizziness)
-]], columns=[
-    'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
-    'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
-    'chest_pain', 'jaundice', 'shortness_of_breath', 'skin_changes',
-    'wheezing', 'chest_tightness', 'body_pain', 'cough', 'loss_of_taste',
-    'abdominal_pain', 'trouble_sleeping', 'frequent_urination', 'headache',
-    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness'
-])
+    convert_input(input_data[symptom]) for symptom in input_data
+]], columns=input_data.keys())
+
 class PDF(FPDF):
     def header(self):
         if os.path.exists("logo.png"):
@@ -152,17 +131,17 @@ diagnosis_map = {
     7: "Liver Disease"
 }
 
-name = st.text_input("Enter patient's full name:")
+patient_name = st.text_input("Enter patient's full name:")
 
 # Prediction
-if st.button("Predict"):
+if st.button("Predict Diagnosis"):
     if name.strip() == "":
         st.warning("Please enter the patient's name.")
     else:
         try:
             prediction = model.predict(input_df)[0]
             diagnosis = diagnosis_map.get(prediction, "Unknown")
-            st.success(f"🩺 Predicted Diagnosis for {name}: **{diagnosis}**")
+            st.success(f"🩺 Predicted Diagnosis for {predict_name}: **{diagnosis}**")
 
             # Generate and download PDF
             report_file = generate_pdf(name, input_df, diagnosis)
@@ -194,9 +173,9 @@ st.info("""
 # Patient engagement: Personalized greeting
 st.markdown("---")
 st.subheader("💬 Tell us about your experience")
-name = st.text_input("What's your name?", "")
+feedback_name = st.text_input("What's your name?", "")
 if name:
-    st.success(f"Thank you for using SmartHealth, {name}! We hope this tool helps you stay informed about your health.")
+    st.success(f"Thank you for using SmartHealth, {feedback_name}! We hope this tool helps you stay informed about your health.")
 
 # Patient engagement: Feedback form
 st.markdown("### 📝 We’d love your feedback!")
