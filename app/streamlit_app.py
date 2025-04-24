@@ -144,7 +144,7 @@ if st.button("Predict Diagnosis"):
             st.success(f"🩺 Predicted Diagnosis for {predict_name}: **{diagnosis}**")
 
             # Generate and download PDF
-            report_file = generate_pdf(name, input_df, diagnosis)
+            report_file = generate_pdf(patient_name, input_df, diagnosis)
             with open(report_file, "rb") as f:
                 st.download_button(
                     label="📄 Download Diagnosis Report",
