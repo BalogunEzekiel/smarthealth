@@ -95,7 +95,6 @@ class PDF(FPDF):
         self.cell(0, 10, f"Verified by SmartHealth | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, 'C')
 
 def generate_pdf(name, symptoms_df, diagnosis):
-    # Grouped symptoms by category
     grouped_symptoms = {
         "Respiratory Symptoms": [
             'cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'
@@ -126,7 +125,21 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf.cell(0, 8, f"Predicted Diagnosis: {diagnosis}", ln=True)
     pdf.ln(4)
 
-    # Sym
+    # Symptom Summary
+    for group, symptoms in grouped_symptoms.items():
+        pdf.set_font("Arial", 'B', 12)
+        pdf.cell(0, 8, group, ln=True)
+        pdf.set_font("Arial", size=10)
+        for symptom in symptoms:
+            value = 'Yes' if symptoms_df.iloc[0].get(symptom, 0) == 1 else 'No'
+            pdf.cell(0, 6, f"- {symptom.replace('_', ' ').title()}: {value}", ln=True)
+        pdf.ln(2)
+
+    # Save and return file path
+    filename = f"SmartHealth_Report_{name.replace(' ', '_')}_{datetime.now().strftime('%Y%m%d%H%M%S')}.pdf"
+    filepath = os.path.join(".", filename)
+    pdf.output(filepath)
+    return filepath
     
 # Define diagnosis labels (ensure this matches the model's output)
 diagnosis_map = {
