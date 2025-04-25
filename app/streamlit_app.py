@@ -7,7 +7,11 @@ from datetime import datetime
 import os
 
 # Load model
+try:
 model = joblib.load("model.pkl")
+except FileNotFoundError:
+    st.error("Model or feature configuration file not found. Please check your setup.")
+    st.stop()
 
 # Logo and title
 logo = Image.open("logo.png")
@@ -131,6 +135,12 @@ diagnosis_map = {
     7: "Liver Disease"
 }
 
+# Load feature columns
+feature_columns = joblib.load("feature_columns.pkl")
+
+# Reorder input
+input_df = input_df[feature_columns]
+
 patient_name = st.text_input("Enter patient's full name:")
 
 # Prediction
@@ -141,7 +151,7 @@ if st.button("Predict Diagnosis"):
         try:
             prediction = model.predict(input_df)[0]
             diagnosis = diagnosis_map.get(prediction, "Unknown")
-            st.success(f"🩺 Predicted Diagnosis for {predict_name}: **{diagnosis}**")
+            st.success(f"🩺 Predicted Diagnosis for {patient_name}: **{diagnosis}**")
 
             # Generate and download PDF
             report_file = generate_pdf(patient_name, input_df, diagnosis)
