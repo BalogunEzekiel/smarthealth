@@ -118,45 +118,39 @@ def generate_pdf(name, symptoms_df, diagnosis):
 
     pdf = PDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=12)
+    pdf.set_font("Arial", size=10)
 
     # Patient Info
-    pdf.cell(0, 10, f"Patient Name: {name}", ln=True)
-    pdf.cell(0, 10, f"Predicted Diagnosis: {diagnosis}", ln=True)
-    pdf.ln(5)
+    pdf.cell(0, 8, f"Patient Name: {name}", ln=True)
+    pdf.cell(0, 8, f"Predicted Diagnosis: {diagnosis}", ln=True)
+    pdf.ln(4)
 
-    pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Symptom Summary by Group:", ln=True)
-    pdf.set_font("Arial", size=11)
+    pdf.set_font("Arial", "B", 10)
+    pdf.cell(0, 8, "Symptom Summary by Group:", ln=True)
+    pdf.set_font("Arial", size=9)
 
-    # Table structure
+    # Table layout (3 columns with gridlines)
     for group, symptoms in grouped_symptoms.items():
-        pdf.set_font("Arial", "B", 11)
+        pdf.set_font("Arial", "B", 9)
         pdf.cell(0, 8, f"\n{group}:", ln=True)
-        pdf.set_font("Arial", size=11)
+        pdf.set_font("Arial", size=9)
 
-        # Create table in two columns
-        for i in range(0, len(symptoms), 2):
-            col1 = symptoms[i]
-            val1 = "Yes" if symptoms_df[col1].values[0] == 1 else "No"
-            label1 = col1.replace("_", " ").title()
-
-            if i + 1 < len(symptoms):
-                col2 = symptoms[i+1]
-                val2 = "Yes" if symptoms_df[col2].values[0] == 1 else "No"
-                label2 = col2.replace("_", " ").title()
-            else:
-                label2 = ""
-                val2 = ""
-
-            pdf.cell(90, 8, f"- {label1}: {val1}", border=0)
-            pdf.cell(90, 8, f"- {label2}: {val2}", border=0)
+        # Print in rows of 3 columns
+        for i in range(0, len(symptoms), 3):
+            for j in range(3):
+                if i + j < len(symptoms):
+                    sym = symptoms[i + j]
+                    val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
+                    label = sym.replace("_", " ").title()
+                    pdf.cell(63, 8, f"{label}: {val}", border=1)
+                else:
+                    pdf.cell(63, 8, "", border=1)
             pdf.ln()
 
     # Disclaimer
-    pdf.ln(10)
-    pdf.set_font("Arial", "I", 10)
-    pdf.multi_cell(0, 10, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
+    pdf.ln(6)
+    pdf.set_font("Arial", "I", 8)
+    pdf.multi_cell(0, 8, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
 
     # Save PDF
     filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
