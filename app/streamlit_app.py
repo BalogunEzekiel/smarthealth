@@ -1,4 +1,4 @@
-import streamlit as st 
+import streamlit as st
 import pandas as pd
 import joblib
 from PIL import Image
@@ -6,19 +6,11 @@ from fpdf import FPDF
 from datetime import datetime
 import os
 
-# === CACHED RESOURCES ===
-@st.cache_resource
-def load_model():
-    return joblib.load("model.pkl")
+# Load model
+model = joblib.load("model.pkl")
 
-@st.cache_resource
-def load_logo():
-    return Image.open("logo.png")
-
-model = load_model()
-logo = load_logo()
-
-# === APP HEADER ===
+# Logo and title
+logo = Image.open("logo.png")
 st.image(logo, width=200)
 st.title("Welcome to SmartHealth!")
 
@@ -41,19 +33,39 @@ st.sidebar.info("This app uses a machine learning model to predict possible diag
 
 st.write("Enter patient data to predict diagnosis:")
 
-# === Symptom Grouping ===
+# Get user input
+# --- Helper function to create grouped inputs ---
 def symptom_group(title, symptoms):
     with st.expander(f"{title} Symptoms", expanded=False):
         return {symptom: st.selectbox(symptom.replace('_', ' ').title(), ["No", "Yes"], key=symptom)
                 for symptom in symptoms}
 
-respiratory_symptoms = ['cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat']
-cardiovascular_symptoms = ['irregular_heartbeat', 'chest_pain', 'fatigue', 'swelling_in_legs']
-digestive_symptoms = ['nausea', 'abdominal_pain', 'dark_urine', 'jaundice']
-metabolic_symptoms = ['increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds']
-neurological_symptoms = ['dizziness', 'headache', 'trouble_sleeping']
-general_symptoms = ['fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps']
+# --- Symptom groups ---
+respiratory_symptoms = [
+    'cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'
+]
 
+cardiovascular_symptoms = [
+    'irregular_heartbeat', 'chest_pain', 'fatigue', 'swelling_in_legs'
+]
+
+digestive_symptoms = [
+    'nausea', 'abdominal_pain', 'dark_urine', 'jaundice'
+]
+
+metabolic_symptoms = [
+    'increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds'
+]
+
+neurological_symptoms = [
+    'dizziness', 'headache', 'trouble_sleeping'
+]
+
+general_symptoms = [
+    'fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps'
+]
+
+# --- Collect all symptom inputs grouped ---
 input_data = {}
 input_data.update(symptom_group("Respiratory", respiratory_symptoms))
 input_data.update(symptom_group("Cardiovascular", cardiovascular_symptoms))
@@ -62,24 +74,13 @@ input_data.update(symptom_group("Metabolic", metabolic_symptoms))
 input_data.update(symptom_group("Neurological", neurological_symptoms))
 input_data.update(symptom_group("General", general_symptoms))
 
-# === Input Conversion ===
+# --- Convert inputs to numeric DataFrame ---
+def convert_input(val): return 1 if val == "Yes" else 0
+
 input_df = pd.DataFrame([[
-    1 if input_data[symptom] == "Yes" else 0 for symptom in input_data
+    convert_input(input_data[symptom]) for symptom in input_data
 ]], columns=input_data.keys())
 
-# === Feature Selection for Prediction ===
-feature_columns = [
-    'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
-    'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
-    'chest_pain', 'jaundice', 'shortness_of_breath', 'skin_changes',
-    'wheezing', 'chest_tightness', 'body_pain', 'cough', 'loss_of_taste',
-    'abdominal_pain', 'trouble_sleeping', 'frequent_urination', 'headache',
-    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness'
-]
-
-input_df = input_df[feature_columns]
-
-# === PDF Generation Class ===
 class PDF(FPDF):
     def header(self):
         if os.path.exists("logo.png"):
@@ -94,52 +95,78 @@ class PDF(FPDF):
         self.cell(0, 10, f"Verified by SmartHealth | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, 'C')
 
 def generate_pdf(name, symptoms_df, diagnosis):
+    # Grouped symptoms by category
     grouped_symptoms = {
-        "Respiratory Symptoms": respiratory_symptoms,
-        "Cardiovascular Symptoms": cardiovascular_symptoms,
-        "Digestive & Hepatic Symptoms": digestive_symptoms,
-        "Metabolic Symptoms": metabolic_symptoms,
-        "Neurological Symptoms": neurological_symptoms,
-        "General Symptoms": general_symptoms
+        "Respiratory Symptoms": [
+            'cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'
+        ],
+        "Cardiovascular Symptoms": [
+            'irregular_heartbeat', 'chest_pain', 'fatigue', 'swelling_in_legs'
+        ],
+        "Digestive & Hepatic Symptoms": [
+            'nausea', 'abdominal_pain', 'dark_urine', 'jaundice'
+        ],
+        "Metabolic Symptoms": [
+            'increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds'
+        ],
+        "Neurological Symptoms": [
+            'dizziness', 'headache', 'trouble_sleeping'
+        ],
+        "General Symptoms": [
+            'fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps'
+        ]
     }
 
     pdf = PDF()
     pdf.add_page()
     pdf.set_font("Arial", size=11)
+    
+    # Patient Info
     pdf.cell(0, 8, f"Patient Name: {name}", ln=True)
     pdf.cell(0, 8, f"Predicted Diagnosis: {diagnosis}", ln=True)
     pdf.ln(4)
 
+    # Symptom Summary Title
     pdf.set_font("Arial", "B", 12)
     pdf.cell(0, 10, "Symptom Summary", ln=True, align="C")
     pdf.ln(2)
 
+    # Grouped Symptom Grid (2 columns)
     for group, symptoms in grouped_symptoms.items():
+        # Group Header
         pdf.set_font("Arial", "B", 11)
         pdf.cell(0, 8, group, ln=True)
         pdf.set_font("Arial", size=10)
+
         for i in range(0, len(symptoms), 2):
             for j in range(2):
                 if i + j < len(symptoms):
                     sym = symptoms[i + j]
                     val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
-                    label = sym.replace("_", " ").title() + ":"
+                    label = sym.replace("_", " ").title() + ":"  # Add colon
+
+                    # Symptom cell with narrower width
                     pdf.cell(55, 8, label, border=1, align="L")
+
+                    # Value cell
                     pdf.cell(25, 8, val, border=1, align="C")
                 else:
+                    # Maintain 2-column layout
                     pdf.cell(55, 8, "", border=1)
                     pdf.cell(25, 8, "", border=1)
             pdf.ln()
 
+    # Disclaimer
     pdf.ln(6)
     pdf.set_font("Arial", "I", 9)
     pdf.multi_cell(0, 8, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
 
+    # Save PDF
     filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
     pdf.output(filename)
     return filename
-
-# === Diagnosis Mapping ===
+    
+# Define diagnosis labels (ensure this matches the model's output)
 diagnosis_map = {
     0: "Asthma",
     1: "COVID-19",
@@ -151,11 +178,23 @@ diagnosis_map = {
     7: "Liver Disease"
 }
 
-# === Patient Input & Prediction ===
+# Load feature columns
+feature_columns = [
+    'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
+    'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
+    'chest_pain', 'jaundice', 'shortness_of_breath', 'skin_changes',
+    'wheezing', 'chest_tightness', 'body_pain', 'cough', 'loss_of_taste',
+    'abdominal_pain', 'trouble_sleeping', 'frequent_urination', 'headache',
+    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness'
+]
+
+input_df = input_df[feature_columns]
+
 patient_name = st.text_input("Enter patient's full name:")
 
+# Prediction
 if st.button("Predict Diagnosis"):
-    if not patient_name.strip():
+    if patient_name.strip() == "":
         st.warning("Please enter the patient's name.")
     else:
         try:
@@ -163,6 +202,7 @@ if st.button("Predict Diagnosis"):
             diagnosis = diagnosis_map.get(prediction, "Unknown")
             st.success(f"🩺 Predicted Diagnosis for {patient_name}: **{diagnosis}**")
 
+            # Generate and download PDF
             report_file = generate_pdf(patient_name, input_df, diagnosis)
             with open(report_file, "rb") as f:
                 st.download_button(
@@ -171,12 +211,14 @@ if st.button("Predict Diagnosis"):
                     file_name=report_file,
                     mime="application/pdf"
                 )
+
         except Exception as e:
             st.error(f"Prediction failed: {e}")
 
-# === General Health Section ===
+# Add disclaimer
 st.caption("Note: This is a prediction based on the symptoms provided. Always consult a medical professional for a definitive diagnosis.")
 
+# Patient engagement: Health tips section
 st.markdown("---")
 st.markdown("### 💡 General Health Tips")
 st.info("""
@@ -187,13 +229,14 @@ st.info("""
 - Get enough sleep and exercise regularly.
 """)
 
-# === Feedback Section ===
+# Patient engagement: Personalized greeting
 st.markdown("---")
 st.subheader("💬 Tell us about your experience")
 feedback_name = st.text_input("What's your name?", "")
 if feedback_name:
     st.success(f"Thank you for using SmartHealth, {feedback_name}! We hope this App helps you stay informed about your health.")
 
+# Patient engagement: Feedback form
 st.markdown("### 📝 We’d love your feedback!")
 feedback = st.text_area("Do you have suggestions or comments about SmartHealth?")
 if st.button("Submit Feedback"):
