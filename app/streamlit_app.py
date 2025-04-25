@@ -52,5 +52,152 @@ cardiovascular_symptoms = ['irregular_heartbeat', 'chest_pain', 'fatigue', 'swel
 digestive_symptoms = ['nausea', 'abdominal_pain', 'dark_urine', 'jaundice']
 metabolic_symptoms = ['increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds']
 neurological_symptoms = ['dizziness', 'headache', 'trouble_sleeping']
-general_symptoms = ['fever', 'body_pain', 'loss_of_
-                   ]
+general_symptoms = ['fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps']
+
+input_data = {}
+input_data.update(symptom_group("Respiratory", respiratory_symptoms))
+input_data.update(symptom_group("Cardiovascular", cardiovascular_symptoms))
+input_data.update(symptom_group("Digestive & Hepatic", digestive_symptoms))
+input_data.update(symptom_group("Metabolic", metabolic_symptoms))
+input_data.update(symptom_group("Neurological", neurological_symptoms))
+input_data.update(symptom_group("General", general_symptoms))
+
+# === Input Conversion ===
+input_df = pd.DataFrame([[
+    1 if input_data[symptom] == "Yes" else 0 for symptom in input_data
+]], columns=input_data.keys())
+
+# === Feature Selection for Prediction ===
+feature_columns = [
+    'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
+    'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
+    'chest_pain', 'jaundice', 'shortness_of_breath', 'skin_changes',
+    'wheezing', 'chest_tightness', 'body_pain', 'cough', 'loss_of_taste',
+    'abdominal_pain', 'trouble_sleeping', 'frequent_urination', 'headache',
+    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness'
+]
+
+input_df = input_df[feature_columns]
+
+# === PDF Generation Class ===
+class PDF(FPDF):
+    def header(self):
+        if os.path.exists("logo.png"):
+            self.image("logo.png", 10, 8, 33)
+        self.set_font("Arial", 'B', 18)
+        self.cell(0, 10, "SmartHealth Report", ln=True, align="C")
+        self.ln(10)
+
+    def footer(self):
+        self.set_y(-15)
+        self.set_font("Arial", "I", 9)
+        self.cell(0, 10, f"Verified by SmartHealth | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, 'C')
+
+def generate_pdf(name, symptoms_df, diagnosis):
+    grouped_symptoms = {
+        "Respiratory Symptoms": respiratory_symptoms,
+        "Cardiovascular Symptoms": cardiovascular_symptoms,
+        "Digestive & Hepatic Symptoms": digestive_symptoms,
+        "Metabolic Symptoms": metabolic_symptoms,
+        "Neurological Symptoms": neurological_symptoms,
+        "General Symptoms": general_symptoms
+    }
+
+    pdf = PDF()
+    pdf.add_page()
+    pdf.set_font("Arial", size=11)
+    pdf.cell(0, 8, f"Patient Name: {name}", ln=True)
+    pdf.cell(0, 8, f"Predicted Diagnosis: {diagnosis}", ln=True)
+    pdf.ln(4)
+
+    pdf.set_font("Arial", "B", 12)
+    pdf.cell(0, 10, "Symptom Summary", ln=True, align="C")
+    pdf.ln(2)
+
+    for group, symptoms in grouped_symptoms.items():
+        pdf.set_font("Arial", "B", 11)
+        pdf.cell(0, 8, group, ln=True)
+        pdf.set_font("Arial", size=10)
+        for i in range(0, len(symptoms), 2):
+            for j in range(2):
+                if i + j < len(symptoms):
+                    sym = symptoms[i + j]
+                    val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
+                    label = sym.replace("_", " ").title() + ":"
+                    pdf.cell(55, 8, label, border=1, align="L")
+                    pdf.cell(25, 8, val, border=1, align="C")
+                else:
+                    pdf.cell(55, 8, "", border=1)
+                    pdf.cell(25, 8, "", border=1)
+            pdf.ln()
+
+    pdf.ln(6)
+    pdf.set_font("Arial", "I", 9)
+    pdf.multi_cell(0, 8, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
+
+    filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
+    pdf.output(filename)
+    return filename
+
+# === Diagnosis Mapping ===
+diagnosis_map = {
+    0: "Asthma",
+    1: "COVID-19",
+    2: "Cancer",
+    3: "Diabetes",
+    4: "Heart Disease",
+    5: "Hypertension",
+    6: "Kidney Disease",
+    7: "Liver Disease"
+}
+
+# === Patient Input & Prediction ===
+patient_name = st.text_input("Enter patient's full name:")
+
+if st.button("Predict Diagnosis"):
+    if not patient_name.strip():
+        st.warning("Please enter the patient's name.")
+    else:
+        try:
+            prediction = model.predict(input_df)[0]
+            diagnosis = diagnosis_map.get(prediction, "Unknown")
+            st.success(f"🩺 Predicted Diagnosis for {patient_name}: **{diagnosis}**")
+
+            report_file = generate_pdf(patient_name, input_df, diagnosis)
+            with open(report_file, "rb") as f:
+                st.download_button(
+                    label="📄 Download Diagnosis Report",
+                    data=f,
+                    file_name=report_file,
+                    mime="application/pdf"
+                )
+        except Exception as e:
+            st.error(f"Prediction failed: {e}")
+
+# === General Health Section ===
+st.caption("Note: This is a prediction based on the symptoms provided. Always consult a medical professional for a definitive diagnosis.")
+
+st.markdown("---")
+st.markdown("### 💡 General Health Tips")
+st.info("""
+- Stay hydrated and eat a balanced diet.
+- Get regular checkups even if you're feeling fine.
+- Avoid self-medication. Seek expert advice.
+- Keep track of chronic symptoms.
+- Get enough sleep and exercise regularly.
+""")
+
+# === Feedback Section ===
+st.markdown("---")
+st.subheader("💬 Tell us about your experience")
+feedback_name = st.text_input("What's your name?", "")
+if feedback_name:
+    st.success(f"Thank you for using SmartHealth, {feedback_name}! We hope this App helps you stay informed about your health.")
+
+st.markdown("### 📝 We’d love your feedback!")
+feedback = st.text_area("Do you have suggestions or comments about SmartHealth?")
+if st.button("Submit Feedback"):
+    if feedback:
+        st.success("✅ Thank you for your feedback!")
+    else:
+        st.warning("Please enter some feedback before submitting.")
