@@ -126,25 +126,39 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf.ln(4)
 
     pdf.set_font("Arial", "B", 10)
-    pdf.cell(0, 8, "Symptom Summary by Group:", ln=True)
-    pdf.set_font("Arial", size=9)
+    pdf.cell(0, 8, "Symptom Summary:", ln=True)
+    pdf.ln(2)
 
-    # Table layout (3 columns with gridlines)
+    # Table with colored headers and highlighted "Yes"
     for group, symptoms in grouped_symptoms.items():
+        # Colored group header
+        pdf.set_fill_color(200, 220, 255)
         pdf.set_font("Arial", "B", 9)
-        pdf.cell(0, 8, f"\n{group}:", ln=True)
+        pdf.cell(0, 8, f"{group}", ln=True, fill=True)
         pdf.set_font("Arial", size=9)
 
-        # Print in rows of 3 columns
+        # Display in 3 columns: Symptom + Value in separate cells
         for i in range(0, len(symptoms), 3):
             for j in range(3):
                 if i + j < len(symptoms):
                     sym = symptoms[i + j]
                     val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
                     label = sym.replace("_", " ").title()
-                    pdf.cell(63, 8, f"{label}: {val}", border=1)
+
+                    # Symptom cell
+                    pdf.set_fill_color(245, 245, 245)
+                    pdf.cell(42, 8, f"{label}", border=1, align="L", fill=True)
+
+                    # Value cell with conditional color
+                    if val == "Yes":
+                        pdf.set_fill_color(200, 255, 200)  # Light green
+                    else:
+                        pdf.set_fill_color(255, 255, 255)  # White
+                    pdf.cell(21, 8, val, border=1, align="C", fill=True)
                 else:
-                    pdf.cell(63, 8, "", border=1)
+                    # Fill empty space to maintain 3-column layout
+                    pdf.cell(42, 8, "", border=1)
+                    pdf.cell(21, 8, "", border=1)
             pdf.ln()
 
     # Disclaimer
