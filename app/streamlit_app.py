@@ -132,14 +132,12 @@ diagnosis_map = {
 }
 
 # Define order
-feature_columns = [
-    'irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
+feature_columns = ['irregular_heartbeat', 'sore_throat', 'dark_urine', 'slow_healing_wounds',
     'unexplained_weight_loss', 'muscle_cramps', 'fatigue', 'nausea', 'fever',
     'chest_pain', 'jaundice', 'shortness_of_breath', 'skin_changes',
     'wheezing', 'chest_tightness', 'body_pain', 'cough', 'loss_of_taste',
     'abdominal_pain', 'trouble_sleeping', 'frequent_urination', 'headache',
-    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness'
-]
+    'swelling_in_legs', 'increased_thirst', 'blurred_vision', 'dizziness']
 
 # Load feature columns
 feature_columns = list(input_data.keys())
