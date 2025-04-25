@@ -120,7 +120,6 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf = PDF()
     pdf.add_page()
     pdf.set_font("Arial", size=11)
-
     
     # Patient Info
     pdf.cell(0, 8, f"Patient Name: {name}", ln=True)
