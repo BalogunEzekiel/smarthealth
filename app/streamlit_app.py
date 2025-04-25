@@ -126,45 +126,7 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf.cell(0, 8, f"Predicted Diagnosis: {diagnosis}", ln=True)
     pdf.ln(4)
 
-    pdf.set_font("Arial", "B", 10)
-    pdf.cell(0, 8, "Symptom Summary", ln=True)
-    pdf.ln(2)
-
-    # Table with no color, gridlines, and colons
-    for group, symptoms in grouped_symptoms.items():
-        # Group header (no color)
-        pdf.set_font("Arial", "B", 10)
-        pdf.cell(0, 8, f"{group}", ln=True)
-        pdf.set_font("Arial", size=10)
-
-        # Display symptoms in 3 columns: Symptom + Value
-        for i in range(0, len(symptoms), 3):
-            for j in range(3):
-                if i + j < len(symptoms):
-                    sym = symptoms[i + j]
-                    val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
-                    label = sym.replace("_", " ").title() + ":"  # Add colon
-
-                    # Symptom cell with border
-                    pdf.cell(60, 8, f"{label}", border=1, align="L")
-
-                    # Value cell with border
-                    pdf.cell(30, 8, val, border=1, align="C")
-                else:
-                    # Fill empty space to maintain 3-column layout
-                    pdf.cell(60, 8, "", border=1)
-                    pdf.cell(30, 8, "", border=1)
-            pdf.ln()
-
-    # Disclaimer
-    pdf.ln(6)
-    pdf.set_font("Arial", "I", 8)
-    pdf.multi_cell(0, 8, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
-
-    # Save PDF
-    filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
-    pdf.output(filename)
-    return filename
+    # Sym
     
 # Define diagnosis labels (ensure this matches the model's output)
 diagnosis_map = {
