@@ -99,19 +99,38 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf.add_page()
     pdf.set_font("Arial", size=12)
 
+    # Patient Info
     pdf.cell(0, 10, f"Patient Name: {name}", ln=True)
     pdf.cell(0, 10, f"Predicted Diagnosis: {diagnosis}", ln=True)
     pdf.ln(5)
 
+    # Define grouped symptoms (same structure used in Streamlit input)
+    symptom_groups = {
+        "Respiratory": ['cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'],
+        "Cardiovascular": ['irregular_heartbeat', 'chest_pain', 'fatigue', 'swelling_in_legs'],
+        "Digestive & Hepatic": ['nausea', 'abdominal_pain', 'dark_urine', 'jaundice'],
+        "Metabolic": ['increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds'],
+        "Neurological": ['dizziness', 'headache', 'trouble_sleeping'],
+        "General": ['fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps']
+    }
+
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Symptom Summary:", ln=True)
-    pdf.set_font("Arial", size=12)
+    pdf.cell(0, 10, "Symptom Summary", ln=True)
+    pdf.ln(2)
+    pdf.set_font("Arial", size=11)
 
-    for col in symptoms_df.columns:
-        response = "Yes" if symptoms_df[col].values[0] == 1 else "No"
-        pdf.cell(0, 10, f"- {col.replace('_', ' ').title()}: {response}", ln=True)
+    for group, symptoms in symptom_groups.items():
+        pdf.set_font("Arial", "B", 11)
+        pdf.cell(0, 8, f"{group} Symptoms:", ln=True)
+        pdf.set_font("Arial", size=11)
+        for symptom in symptoms:
+            if symptom in symptoms_df.columns:
+                response = "Yes" if symptoms_df[symptom].values[0] == 1 else "No"
+                pdf.cell(80, 8, f"- {symptom.replace('_', ' ').title()}:", 0, 0)
+                pdf.cell(20, 8, response, ln=True)
+        pdf.ln(2)
 
-    pdf.ln(10)
+    pdf.ln(5)
     pdf.set_font("Arial", "I", 10)
     pdf.multi_cell(0, 10, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
 
