@@ -95,6 +95,27 @@ class PDF(FPDF):
         self.cell(0, 10, f"Verified by SmartHealth | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, 'C')
 
 def generate_pdf(name, symptoms_df, diagnosis):
+    grouped_symptoms = {
+        "Respiratory Symptoms": [
+            'cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'
+        ],
+        "Cardiovascular Symptoms": [
+            'irregular_heartbeat', 'chest_pain', 'fatigue', 'swelling_in_legs'
+        ],
+        "Digestive & Hepatic Symptoms": [
+            'nausea', 'abdominal_pain', 'dark_urine', 'jaundice'
+        ],
+        "Metabolic Symptoms": [
+            'increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds'
+        ],
+        "Neurological Symptoms": [
+            'dizziness', 'headache', 'trouble_sleeping'
+        ],
+        "General Symptoms": [
+            'fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps'
+        ]
+    }
+
     pdf = PDF()
     pdf.add_page()
     pdf.set_font("Arial", size=12)
@@ -104,36 +125,40 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf.cell(0, 10, f"Predicted Diagnosis: {diagnosis}", ln=True)
     pdf.ln(5)
 
-    # Define grouped symptoms (same structure used in Streamlit input)
-    symptom_groups = {
-        "Respiratory": ['cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'],
-        "Cardiovascular": ['irregular_heartbeat', 'chest_pain', 'fatigue', 'swelling_in_legs'],
-        "Digestive & Hepatic": ['nausea', 'abdominal_pain', 'dark_urine', 'jaundice'],
-        "Metabolic": ['increased_thirst', 'frequent_urination', 'blurred_vision', 'slow_healing_wounds'],
-        "Neurological": ['dizziness', 'headache', 'trouble_sleeping'],
-        "General": ['fever', 'body_pain', 'loss_of_taste', 'unexplained_weight_loss', 'skin_changes', 'muscle_cramps']
-    }
-
     pdf.set_font("Arial", "B", 12)
-    pdf.cell(0, 10, "Symptom Summary", ln=True)
-    pdf.ln(2)
+    pdf.cell(0, 10, "Symptom Summary by Group:", ln=True)
     pdf.set_font("Arial", size=11)
 
-    for group, symptoms in symptom_groups.items():
+    # Table structure
+    for group, symptoms in grouped_symptoms.items():
         pdf.set_font("Arial", "B", 11)
-        pdf.cell(0, 8, f"{group} Symptoms:", ln=True)
+        pdf.cell(0, 8, f"\n{group}:", ln=True)
         pdf.set_font("Arial", size=11)
-        for symptom in symptoms:
-            if symptom in symptoms_df.columns:
-                response = "Yes" if symptoms_df[symptom].values[0] == 1 else "No"
-                pdf.cell(80, 8, f"- {symptom.replace('_', ' ').title()}:", 0, 0)
-                pdf.cell(20, 8, response, ln=True)
-        pdf.ln(2)
 
-    pdf.ln(5)
+        # Create table in two columns
+        for i in range(0, len(symptoms), 2):
+            col1 = symptoms[i]
+            val1 = "Yes" if symptoms_df[col1].values[0] == 1 else "No"
+            label1 = col1.replace("_", " ").title()
+
+            if i + 1 < len(symptoms):
+                col2 = symptoms[i+1]
+                val2 = "Yes" if symptoms_df[col2].values[0] == 1 else "No"
+                label2 = col2.replace("_", " ").title()
+            else:
+                label2 = ""
+                val2 = ""
+
+            pdf.cell(90, 8, f"- {label1}: {val1}", border=0)
+            pdf.cell(90, 8, f"- {label2}: {val2}", border=0)
+            pdf.ln()
+
+    # Disclaimer
+    pdf.ln(10)
     pdf.set_font("Arial", "I", 10)
     pdf.multi_cell(0, 10, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
 
+    # Save PDF
     filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
     pdf.output(filename)
     return filename
