@@ -139,4 +139,4 @@ def generate_pdf(name, df, diagnosis):
                     pdf.cell(25, 8, val, border=1, align="C")
                 else:
                     pdf.cell(55, 8, "", border=1)
-                    pdf.cell(
+                    pdf.cell()
