@@ -95,6 +95,8 @@ class PDF(FPDF):
         self.cell(0, 10, f"Verified by SmartHealth | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, 'C')
 
 def generate_pdf(name, symptoms_df, diagnosis):
+    from fpdf import FPDF
+
     grouped_symptoms = {
         "Respiratory Symptoms": [
             'cough', 'wheezing', 'chest_tightness', 'shortness_of_breath', 'sore_throat'
@@ -116,39 +118,56 @@ def generate_pdf(name, symptoms_df, diagnosis):
         ]
     }
 
-    pdf = PDF()
+    pdf = FPDF()
     pdf.add_page()
     pdf.set_font("Arial", size=9)
 
-    # Header section
+    # Header
     pdf.cell(0, 8, f"Patient Name: {name}", ln=True)
     pdf.cell(0, 8, f"Predicted Diagnosis: {diagnosis}", ln=True)
     pdf.ln(4)
-
     pdf.set_font("Arial", "B", 10)
-    pdf.cell(0, 8, "Symptom Summary by Group", ln=True)
+    pdf.cell(0, 8, "Symptom Summary", ln=True)
     pdf.ln(2)
 
-    # Loop through each group
-    for group, symptoms in grouped_symptoms.items():
-        pdf.set_font("Arial", "B", 9)
-        pdf.cell(0, 8, f"{group}", ln=True, border=1)
-        pdf.set_font("Arial", size=9)
+    # Prepare layout
+    col_width = 95
+    row_height = 8
+    x_positions = [10, 110]  # Column positions (left and right)
+    y_start = pdf.get_y()
+    col = 0
 
-        for sym in symptoms:
-            label = sym.replace("_", " ").title() + ":"
-            val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
+    # Add symptom groups into two columns (3 per column)
+    group_list = list(grouped_symptoms.items())
+    for i in range(0, len(group_list), 3):
+        for j in range(3):  # Three groups per column
+            if i + j < len(group_list):
+                group_title, symptoms = group_list[i + j]
+                x = x_positions[col]
+                y = pdf.get_y() if j == 0 else y + 2  # add spacing after each group
 
-            pdf.cell(80, 8, label, border=1)
-            pdf.cell(30, 8, val, border=1, ln=True)
+                pdf.set_xy(x, y)
+                pdf.set_font("Arial", "B", 9)
+                pdf.cell(col_width, row_height, group_title, ln=1, border=1)
+                pdf.set_font("Arial", size=9)
 
-        pdf.ln(2)
+                for sym in symptoms:
+                    label = sym.replace("_", " ").title() + ":"
+                    val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
 
-    # Footer disclaimer
+                    pdf.set_x(x)
+                    pdf.cell(col_width // 2, row_height, label, border=1)
+                    pdf.cell(col_width // 2, row_height, val, border=1, ln=1)
+
+        col += 1
+        if col < 2:
+            pdf.set_y(y_start)  # Reset y for right column
+
+    # Footer
+    pdf.ln(4)
     pdf.set_font("Arial", "I", 8)
     pdf.multi_cell(0, 8, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
 
-    # Save and return filename
     filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
     pdf.output(filename)
     return filename
