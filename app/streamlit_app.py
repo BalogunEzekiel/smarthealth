@@ -139,8 +139,8 @@ try:
     # Load feature columns
     feature_columns = joblib.load("feature_columns.pkl")
 
-# Reorder input
-input_df = input_df[feature_columns]
+    # Reorder input
+    input_df = input_df[feature_columns]
 except FileNotFoundError:
     st.error("Model or feature configuration file not found. Please check your setup.")
     st.stop()
