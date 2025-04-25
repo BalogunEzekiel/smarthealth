@@ -8,7 +8,7 @@ import os
 
 # Load model
 try:
-model = joblib.load("model.pkl")
+    model = joblib.load("model.pkl")
 except FileNotFoundError:
     st.error("Model or feature configuration file not found. Please check your setup.")
     st.stop()
