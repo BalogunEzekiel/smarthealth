@@ -85,13 +85,13 @@ class PDF(FPDF):
     def header(self):
         if os.path.exists("logo.png"):
             self.image("logo.png", 10, 8, 33)
-        self.set_font("Arial", 'B', 16)
+        self.set_font("Arial", 'B', 18)
         self.cell(0, 10, "SmartHealth Report", ln=True, align="C")
         self.ln(10)
 
     def footer(self):
         self.set_y(-15)
-        self.set_font("Arial", "I", 8)
+        self.set_font("Arial", "I", 9)
         self.cell(0, 10, f"Verified by SmartHealth | {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}", 0, 0, 'C')
 
 def generate_pdf(name, symptoms_df, diagnosis):
@@ -119,7 +119,7 @@ def generate_pdf(name, symptoms_df, diagnosis):
 
     pdf = PDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=10)
+    pdf.set_font("Arial", size=11)
 
     # Patient Info
     pdf.cell(0, 8, f"Patient Name: {name}", ln=True)
@@ -127,14 +127,14 @@ def generate_pdf(name, symptoms_df, diagnosis):
     pdf.ln(4)
 
     # Symptom Summary Title
-    pdf.set_font("Arial", "B", 11)
+    pdf.set_font("Arial", "B", 12)
     pdf.cell(0, 10, "Symptom Summary", ln=True, align="C")
     pdf.ln(2)
 
     # Grouped Symptom Grid (2 columns)
     for group, symptoms in grouped_symptoms.items():
         # Group Header
-        pdf.set_font("Arial", "B", 10)
+        pdf.set_font("Arial", "B", 11)
         pdf.cell(0, 8, group, ln=True)
         pdf.set_font("Arial", size=10)
 
@@ -158,7 +158,7 @@ def generate_pdf(name, symptoms_df, diagnosis):
 
     # Disclaimer
     pdf.ln(6)
-    pdf.set_font("Arial", "I", 8)
+    pdf.set_font("Arial", "I", 9)
     pdf.multi_cell(0, 8, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
 
     # Save PDF
