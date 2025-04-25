@@ -142,6 +142,8 @@ feature_columns = [
 ]
 
 # Load feature columns
+feature_columns = list(input_data.keys())
+
 feature_columns = joblib.load("feature_columns.pkl")
 
 # Reorder input
