@@ -7,11 +7,7 @@ from datetime import datetime
 import os
 
 # Load model
-try:
-    model = joblib.load("model.pkl")
-except FileNotFoundError:
-    st.error("Model or feature configuration file not found. Please check your setup.")
-    st.stop()
+model = joblib.load("model.pkl")
 
 # Logo and title
 logo = Image.open("logo.png")
@@ -135,15 +131,11 @@ diagnosis_map = {
     7: "Liver Disease"
 }
 
-try:
-    # Load feature columns
-    feature_columns = joblib.load("feature_columns.pkl")
+# Load feature columns
+feature_columns = joblib.load("feature_columns.pkl")
 
-    # Reorder input
-    input_df = input_df[feature_columns]
-except FileNotFoundError:
-    st.error("Model or feature configuration file not found. Please check your setup.")
-    st.stop()
+# Reorder input
+input_df = input_df[feature_columns]
 
 patient_name = st.text_input("Enter patient's full name:")
 
