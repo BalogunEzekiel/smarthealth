@@ -118,55 +118,37 @@ def generate_pdf(name, symptoms_df, diagnosis):
 
     pdf = PDF()
     pdf.add_page()
-    pdf.set_font("Arial", size=10)
+    pdf.set_font("Arial", size=9)
 
-    # Patient Info
+    # Header section
     pdf.cell(0, 8, f"Patient Name: {name}", ln=True)
     pdf.cell(0, 8, f"Predicted Diagnosis: {diagnosis}", ln=True)
     pdf.ln(4)
 
     pdf.set_font("Arial", "B", 10)
-    pdf.cell(0, 8, "Symptom Summary:", ln=True)
+    pdf.cell(0, 8, "Symptom Summary by Group", ln=True)
     pdf.ln(2)
 
-    # Table with colored headers and highlighted "Yes"
+    # Loop through each group
     for group, symptoms in grouped_symptoms.items():
-        # Colored group header
-        pdf.set_fill_color(200, 220, 255)
         pdf.set_font("Arial", "B", 9)
-        pdf.cell(0, 8, f"{group}", ln=True, fill=True)
+        pdf.cell(0, 8, f"{group}", ln=True, border=1)
         pdf.set_font("Arial", size=9)
 
-        # Display in 3 columns: Symptom + Value in separate cells
-        for i in range(0, len(symptoms), 3):
-            for j in range(3):
-                if i + j < len(symptoms):
-                    sym = symptoms[i + j]
-                    val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
-                    label = sym.replace("_", " ").title()
+        for sym in symptoms:
+            label = sym.replace("_", " ").title() + ":"
+            val = "Yes" if symptoms_df[sym].values[0] == 1 else "No"
 
-                    # Symptom cell
-                    pdf.set_fill_color(245, 245, 245)
-                    pdf.cell(42, 8, f"{label}", border=1, align="L", fill=True)
+            pdf.cell(80, 8, label, border=1)
+            pdf.cell(30, 8, val, border=1, ln=True)
 
-                    # Value cell with conditional color
-                    if val == "Yes":
-                        pdf.set_fill_color(200, 255, 200)  # Light green
-                    else:
-                        pdf.set_fill_color(255, 255, 255)  # White
-                    pdf.cell(21, 8, val, border=1, align="C", fill=True)
-                else:
-                    # Fill empty space to maintain 3-column layout
-                    pdf.cell(42, 8, "", border=1)
-                    pdf.cell(21, 8, "", border=1)
-            pdf.ln()
+        pdf.ln(2)
 
-    # Disclaimer
-    pdf.ln(6)
+    # Footer disclaimer
     pdf.set_font("Arial", "I", 8)
     pdf.multi_cell(0, 8, "Disclaimer: This is a preliminary diagnostic report based on machine learning predictions. Always consult a medical professional for proper diagnosis.")
 
-    # Save PDF
+    # Save and return filename
     filename = f"{name.replace(' ', '_')}_SmartHealth_Report.pdf"
     pdf.output(filename)
     return filename
