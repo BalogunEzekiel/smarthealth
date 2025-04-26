@@ -289,10 +289,10 @@ if prompt := st.chat_input("Ask me about symptoms, conditions, or health tips...
         full_response = ""
 
 # Generate assistant response
-client = st.secrets["openai"]["auth_token"]
+openai.api_key = st.secrets["openai"]["auth_token"]
 
 try:
-    response = client.chat.completions.create(
+    response = openai.ChatCompletion.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": "You are a helpful SmartHealth assistant specializing in providing general health tips and information based on symptoms. Always recommend seeing a doctor for serious concerns."},
