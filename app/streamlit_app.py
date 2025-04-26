@@ -284,7 +284,7 @@ response = client.chat.completions.create(
         stream=True,  # Streaming allows you to update the message in real-time
     )
 
-    for chunk in response:
+for chunk in response:
         if chunk.choices[0].delta.get("content"):
             full_response += chunk.choices[0].delta["content"]
             message_placeholder.markdown(full_response + "▌")  # ▌ for typing effect
