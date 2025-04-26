@@ -289,7 +289,7 @@ if prompt := st.chat_input("Ask me about symptoms, conditions, or health tips...
         full_response = ""
 
 # Generate assistant response
-client = OpenAI(api_key="auth_token")
+client = st.secrets["openai"]["auth_token"]
 
 try:
     response = client.chat.completions.create(
