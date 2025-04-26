@@ -92,7 +92,7 @@ input_df = pd.DataFrame([[
 
 
 class PDF(FPDF):
-def header(self):
+    def header(self):
     try:
         if os.path.exists("logo.png"):
             self.image("logo.png", 10, 8, 33)
