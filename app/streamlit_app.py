@@ -5,6 +5,7 @@ from PIL import Image
 from fpdf import FPDF
 from datetime import datetime
 import os
+import openai
 
 # Load model
 model = joblib.load("model.pkl")
@@ -244,3 +245,48 @@ if st.button("Submit Feedback"):
         st.success("✅ Thank you for your feedback!")
     else:
         st.warning("Please enter some feedback before submitting.")
+
+# Set OpenAI API key
+openai.api_key = st.secrets["openai"]["auth_token"]
+
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "assistant", "content": "Hello! I'm your SmartHealth Assistant. How can I help you today?"}
+    ]
+
+# Display chat messages
+for msg in st.session_state.messages:
+    with st.chat_message(msg["role"]):
+        st.markdown(msg["content"])
+
+# Chat input
+if prompt := st.chat_input("Ask me about symptoms, conditions, or health tips..."):
+    # Append user message
+    st.session_state.messages.append({"role": "user", "content": prompt})
+    with st.chat_message("user"):
+        st.markdown(prompt)
+
+    # Generate assistant response
+    with st.chat_message("assistant"):
+        message_placeholder = st.empty()
+        full_response = ""
+
+        # Call OpenAI API
+        response = openai.ChatCompletion.create(
+            model="gpt-3.5-turbo",
+            messages=st.session_state.messages
+        )
+
+        full_response = response.choices[0].message["content"]
+        message_placeholder.markdown(full_response)
+
+    # Append assistant response
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+# Initialize chat history with system prompt
+if "messages" not in st.session_state:
+    st.session_state.messages = [
+        {"role": "system", "content": "You are a helpful assistant specialized in providing information about health conditions, symptoms, and general wellness tips."},
+        {"role": "assistant", "content": "Hello! I'm your SmartHealth Assistant. How can I help you today?"}
+    ]
