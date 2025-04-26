@@ -6,6 +6,7 @@ from fpdf import FPDF
 from datetime import datetime
 import os
 import openai
+from openai import OpenAI
 
 # Load model
 model = joblib.load("model.pkl")
@@ -242,7 +243,7 @@ st.markdown("### 📝 We’d love your feedback!")
 feedback = st.text_area("Do you have suggestions or comments about SmartHealth?")
 if st.button("Submit Feedback"):
     if feedback:
-        st.success("✅ Thank you for your feedback!")
+        st.success("✅ Thank you for your feedback! We look forward to seeing you again soon for your health monitoring.")
     else:
         st.warning("Please enter some feedback before submitting.")
 
@@ -272,16 +273,25 @@ if prompt := st.chat_input("Ask me about symptoms, conditions, or health tips...
         message_placeholder = st.empty()
         full_response = ""
 
-        # Call OpenAI API
-        response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",
-            messages=st.session_state.messages
-        )
+client = OpenAI()
 
-        full_response = response.choices[0].message["content"]
-        message_placeholder.markdown(full_response)
+response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful SmartHealth assistant specializing in providing general health tips and information based on symptoms. Always recommend seeing a doctor for serious concerns."},
+            *st.session_state.messages
+        ],
+        stream=True,  # Streaming allows you to update the message in real-time
+    )
 
-    # Append assistant response
+    for chunk in response:
+        if chunk.choices[0].delta.get("content"):
+            full_response += chunk.choices[0].delta["content"]
+            message_placeholder.markdown(full_response + "▌")  # ▌ for typing effect
+
+    message_placeholder.markdown(full_response)  # Remove the typing cursor when done
+
+    # Save assistant message
     st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 # Initialize chat history with system prompt
