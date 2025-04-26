@@ -93,11 +93,11 @@ input_df = pd.DataFrame([[
 
 class PDF(FPDF):
     def header(self):
-    try:
-        if os.path.exists("logo.png"):
-            self.image("logo.png", 10, 8, 33)
-    except Exception as e:
-        pass  # Ignore image errors
+        try:
+            if os.path.exists("logo.png"):
+                self.image("logo.png", 10, 8, 33)
+        except Exception as e:
+            pass  # Ignore image errors
         self.set_font("Arial", 'B', 18)
         self.cell(0, 12, "SmartHealth Report", ln=True, align="C")
         self.ln(11)
