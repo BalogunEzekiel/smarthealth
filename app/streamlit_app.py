@@ -259,58 +259,29 @@ if st.button("Submit Feedback"):
         st.warning("Please enter some feedback before submitting.")
 
 # Set OpenAI API key
+client = openai.OpenAI(api_key=st.secrets["openai"]["auth_token"])
+
+# Generate assistant response
 try:
-    openai.api_key = st.secrets["openai"]["auth_token"]
+    response = client.chat.completions.create(
+        model="gpt-3.5-turbo",
+        messages=[
+            {"role": "system", "content": "You are a helpful SmartHealth assistant specializing in providing general health tips and information based on symptoms. Always recommend seeing a doctor for serious concerns."},
+            *st.session_state.messages
+        ],
+        stream=True,
+    )
 except Exception as e:
-    st.error(f"OpenAI authentication failed: {e}")
+    st.error(f"Failed to get assistant response: {e}")
     st.stop()
 
-# Initialize chat history
-if "messages" not in st.session_state:
-    st.session_state.messages = [
-        {"role": "assistant", "content": "Hello! I'm your SmartHealth Assistant. How can I help you today?"}
-    ]
+# Stream and display the response
+for chunk in response:
+    if chunk.choices[0].delta.get("content"):
+        full_response += chunk.choices[0].delta["content"]
+        message_placeholder.markdown(full_response + "▌")
 
-# Display chat messages
-for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
-        st.markdown(msg["content"])
-
-# Chat input
-if prompt := st.chat_input("Ask me about symptoms, conditions, or health tips..."):
-    # Append user message
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
-        st.markdown(prompt)
-
-    # Generate assistant response
-    with st.chat_message("assistant"):
-        message_placeholder = st.empty()
-        full_response = ""
-
-        try:
-            response = openai.ChatCompletion.create(
-                model="gpt-3.5-turbo",
-                messages=[
-                    {"role": "system", "content": "You are a helpful SmartHealth assistant specializing in providing general health tips and information based on symptoms. Always recommend seeing a doctor for serious concerns."},
-                    *st.session_state.messages
-                ],
-                stream=True,  # Streaming for real-time updates
-            )
-        except Exception as e:
-            st.error(f"Failed to get assistant response: {e}")
-            st.stop()
-
-        # Stream and display the response
-        for chunk in response:
-            if chunk.choices[0].delta.get("content"):
-                full_response += chunk.choices[0].delta["content"]
-                message_placeholder.markdown(full_response + "▌")  # Typing effect
-
-        message_placeholder.markdown(full_response)  # Final response without cursor
-
-    # Save assistant message
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+message_placeholder.markdown(full_response)
 
 # Initialize chat history with system prompt
 if "messages" not in st.session_state:
