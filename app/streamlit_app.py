@@ -9,11 +9,18 @@ import openai
 from openai import OpenAI
 
 # Load model
-model = joblib.load("model.pkl")
+try:
+    model = joblib.load("model.pkl")
+except Exception as e:
+    st.error(f"Failed to load model: {e}")
+    st.stop()
 
 # Logo and title
-logo = Image.open("logo.png")
-st.image(logo, width=200)
+try:
+    logo = Image.open("logo.png")
+    st.image(logo, width=200)
+except Exception as e:
+    st.warning(f"Logo could not be loaded: {e}")
 st.title("Welcome to SmartHealth!")
 
 with st.sidebar:
@@ -83,13 +90,17 @@ input_df = pd.DataFrame([[
     convert_input(input_data[symptom]) for symptom in input_data
 ]], columns=input_data.keys())
 
+
 class PDF(FPDF):
-    def header(self):
+def header(self):
+    try:
         if os.path.exists("logo.png"):
             self.image("logo.png", 10, 8, 33)
+    except Exception as e:
+        pass  # Ignore image errors
         self.set_font("Arial", 'B', 18)
-        self.cell(0, 10, "SmartHealth Report", ln=True, align="C")
-        self.ln(10)
+        self.cell(0, 12, "SmartHealth Report", ln=True, align="C")
+        self.ln(11)
 
     def footer(self):
         self.set_y(-15)
@@ -248,7 +259,11 @@ if st.button("Submit Feedback"):
         st.warning("Please enter some feedback before submitting.")
 
 # Set OpenAI API key
-openai.api_key = st.secrets["openai"]["auth_token"]
+try:
+    openai.api_key = st.secrets["openai"]["auth_token"]
+except Exception as e:
+    st.error(f"OpenAI authentication failed: {e}")
+    st.stop()
 
 # Initialize chat history
 if "messages" not in st.session_state:
@@ -276,7 +291,8 @@ if prompt := st.chat_input("Ask me about symptoms, conditions, or health tips...
 # Generate assistant response
 client = OpenAI()
 
-response = client.chat.completions.create(
+try:
+    response = client.chat.completions.create(
     model="gpt-3.5-turbo",
     messages=[
         {"role": "system", "content": "You are a helpful SmartHealth assistant specializing in providing general health tips and information based on symptoms. Always recommend seeing a doctor for serious concerns."},
@@ -284,6 +300,8 @@ response = client.chat.completions.create(
     ],
     stream=True,  # Streaming allows you to update the message in real-time
 )
+except Exception as e:
+    st.error(f"Failed to get assistant response: {e}")
 
 for chunk in response:
     if chunk.choices[0].delta.get("content"):
