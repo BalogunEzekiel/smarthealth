@@ -288,30 +288,29 @@ if prompt := st.chat_input("Ask me about symptoms, conditions, or health tips...
         message_placeholder = st.empty()
         full_response = ""
 
-# Generate assistant response
-openai.api_key = st.secrets["openai"]["auth_token"]
+        try:
+            response = openai.ChatCompletion.create(
+                model="gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": "You are a helpful SmartHealth assistant specializing in providing general health tips and information based on symptoms. Always recommend seeing a doctor for serious concerns."},
+                    *st.session_state.messages
+                ],
+                stream=True,  # Streaming for real-time updates
+            )
+        except Exception as e:
+            st.error(f"Failed to get assistant response: {e}")
+            st.stop()
 
-try:
-    response = openai.ChatCompletion.create(
-    model="gpt-3.5-turbo",
-    messages=[
-        {"role": "system", "content": "You are a helpful SmartHealth assistant specializing in providing general health tips and information based on symptoms. Always recommend seeing a doctor for serious concerns."},
-        *st.session_state.messages
-    ],
-    stream=True,  # Streaming allows you to update the message in real-time
-)
-except Exception as e:
-    st.error(f"Failed to get assistant response: {e}")
+        # Stream and display the response
+        for chunk in response:
+            if chunk.choices[0].delta.get("content"):
+                full_response += chunk.choices[0].delta["content"]
+                message_placeholder.markdown(full_response + "▌")  # Typing effect
 
-for chunk in response:
-    if chunk.choices[0].delta.get("content"):
-        full_response += chunk.choices[0].delta["content"]
-        message_placeholder.markdown(full_response + "▌")  # ▌ for typing effect
+        message_placeholder.markdown(full_response)  # Final response without cursor
 
-message_placeholder.markdown(full_response)  # Remove the typing cursor when done
-
-# Save assistant message
-st.session_state.messages.append({"role": "assistant", "content": full_response})
+    # Save assistant message
+    st.session_state.messages.append({"role": "assistant", "content": full_response})
 
 # Initialize chat history with system prompt
 if "messages" not in st.session_state:
